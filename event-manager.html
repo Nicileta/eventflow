@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventFlow — Manager de Evenimente</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   CSS VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg: #f5f2ec;
+  --bg2: #eee9e0;
+  --bg3: #e5dfd4;
+  --surface: #ffffff;
+  --surface2: #faf8f4;
+  --border: #d8d0c4;
+  --border2: #c9bfb0;
+  --text: #1a1713;
+  --text2: #4a4540;
+  --text3: #7a726a;
+  --accent: #c0392b;
+  --accent2: #e74c3c;
+  --accent-light: #fde8e6;
+  --gold: #c89b3c;
+  --gold-light: #fdf3de;
+  --green: #27ae60;
+  --green-light: #e8f8ef;
+  --blue: #2980b9;
+  --blue-light: #e8f4fc;
+  --purple: #8e44ad;
+  --purple-light: #f5eafb;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow2: 0 4px 20px rgba(0,0,0,0.12);
+  --shadow3: 0 8px 40px rgba(0,0,0,0.16);
+  --radius: 12px;
+  --radius2: 8px;
+  --radius3: 6px;
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --transition: 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --bg: #0f0e0c;
+  --bg2: #161411;
+  --bg3: #1e1b17;
+  --surface: #1e1b17;
+  --surface2: #252118;
+  --border: #2e2a24;
+  --border2: #3a342c;
+  --text: #f0ebe3;
+  --text2: #b8b0a4;
+  --text3: #7a726a;
+  --accent: #e74c3c;
+  --accent2: #ff6b5e;
+  --accent-light: #2a1210;
+  --gold: #d4a94a;
+  --gold-light: #1e1808;
+  --green: #2ecc71;
+  --green-light: #0d1f14;
+  --blue: #3498db;
+  --blue-light: #0d1520;
+  --purple: #9b59b6;
+  --purple-light: #160d1f;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow2: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow3: 0 8px 40px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+#header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 18px;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.logo-text span { color: var(--accent); }
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counter-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.counter-badge strong { color: var(--accent); }
+
+/* Theme toggle */
+.theme-toggle {
+  width: 48px; height: 26px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  background: var(--text2);
+  border-radius: 50%;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+[data-theme="dark"] .theme-toggle::after {
+  transform: translateX(22px);
+  background: var(--gold);
+}
+.theme-label { font-size: 12px; color: var(--text3); }
+
+#browserInfo {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.main-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; }
+.main-area { display: flex; flex-direction: column; gap: 16px; }
+
+/* ═══════════════════════════════════════════
+   CARDS / PANELS
+═══════════════════════════════════════════ */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title .icon { font-size: 15px; }
+.panel-body { padding: 20px; }
+
+/* ═══════════════════════════════════════════
+   FORM
+═══════════════════════════════════════════ */
+.form-group { margin-bottom: 14px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+label .req { color: var(--accent); margin-left: 2px; }
+
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius3);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+input.invalid, select.invalid, textarea.invalid {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+input.valid, select.valid, textarea.valid {
+  border-color: var(--green);
+}
+
+textarea { resize: vertical; min-height: 72px; }
+
+.field-error {
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 3px;
+  display: none;
+}
+
+.field-error.show { display: block; }
+
+/* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius3);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); box-shadow: 0 4px 12px rgba(192,57,43,0.35); }
+
+.btn-secondary { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg2); color: var(--text); }
+
+.btn-ghost { background: transparent; color: var(--text3); border: 1px solid transparent; }
+.btn-ghost:hover { background: var(--bg2); color: var(--text); }
+
+.btn-danger { background: transparent; color: var(--accent); border: 1px solid var(--border); }
+.btn-danger:hover { background: var(--accent); color: white; }
+
+.btn-success { background: var(--green); color: white; }
+.btn-success:hover { filter: brightness(1.1); }
+
+.btn-gold { background: var(--gold); color: white; }
+.btn-gold:hover { filter: brightness(1.1); }
+
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-full { width: 100%; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════════
+   SEARCH / FILTER BAR
+═══════════════════════════════════════════ */
+.search-wrap { position: relative; }
+.search-wrap input { padding-left: 36px; }
+.search-wrap .search-icon {
+  position: absolute;
+  left: 11px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3); font-size: 14px;
+  pointer-events: none;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sort-controls select { flex: 1; }
+
+.sort-dir-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius3);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text2);
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.sort-dir-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   STATISTICS
+═══════════════════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius3);
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-number {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+}
+
+.stat-card.gold .stat-number { color: var(--gold); }
+.stat-card.green .stat-number { color: var(--green); }
+.stat-card.blue .stat-number { color: var(--blue); }
+.stat-card.purple .stat-number { color: var(--purple); }
+
+/* ═══════════════════════════════════════════
+   COUNTDOWN
+═══════════════════════════════════════════ */
+.countdown-display {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.countdown-label {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.countdown-event-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.countdown-time {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.countdown-units {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.countdown-unit { text-align: center; }
+.countdown-unit .val {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.countdown-unit .lbl {
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.session-timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 10px 14px;
+  margin-top: 10px;
+}
+
+.session-label { font-size: 11px; color: var(--text3); }
+.session-time { font-family: var(--font-mono); font-size: 14px; color: var(--green); font-weight: 500; }
+
+/* ═══════════════════════════════════════════
+   EVENT CARDS
+═══════════════════════════════════════════ */
+.events-list { display: flex; flex-direction: column; gap: 10px; }
+
+.event-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.35s ease forwards;
+}
+
+.event-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 2px 0 0 2px;
+}
+
+.event-card.priority-inalta::before { background: var(--accent); }
+.event-card.priority-medie::before { background: var(--gold); }
+.event-card.priority-scazuta::before { background: var(--green); }
+
+.event-card:hover {
+  border-color: var(--border2);
+  box-shadow: var(--shadow2);
+  transform: translateY(-1px);
+}
+
+.event-card.favorite-card { border-color: var(--gold); background: var(--gold-light); }
+[data-theme="dark"] .event-card.favorite-card { background: var(--surface2); }
+
+.event-card.removing {
+  animation: slideOut 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-8px) scale(0.97); }
+}
+
+.event-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.event-title-row { flex: 1; min-width: 0; }
+
+.event-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge-cat-academic { background: var(--blue-light); color: var(--blue); }
+.badge-cat-personal { background: var(--purple-light); color: var(--purple); }
+.badge-cat-profesional { background: var(--gold-light); color: var(--gold); }
+.badge-cat-social { background: var(--green-light); color: var(--green); }
+.badge-cat-alt { background: var(--bg3); color: var(--text3); }
+
+.badge-status-planificat { background: var(--blue-light); color: var(--blue); }
+.badge-status-confirmat { background: var(--green-light); color: var(--green); }
+.badge-status-anulat { background: var(--accent-light); color: var(--accent); }
+.badge-status-finalizat { background: var(--bg3); color: var(--text3); }
+
+.badge-priority-inalta { background: var(--accent-light); color: var(--accent); }
+.badge-priority-medie { background: var(--gold-light); color: var(--gold); }
+.badge-priority-scazuta { background: var(--green-light); color: var(--green); }
+
+.event-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+.icon-btn {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius3);
+  background: var(--bg2);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all var(--transition);
+  color: var(--text3);
+}
+
+.icon-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.icon-btn.fav-btn.active { background: var(--gold-light); color: var(--gold); border-color: var(--gold); }
+.icon-btn.fav-btn.active:hover { background: var(--gold); color: white; }
+
+.event-body { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+
+.event-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+}
+
+.event-date-display { display: flex; align-items: center; gap: 4px; }
+
+/* ═══════════════════════════════════════════
+   FAVORITES SECTION
+═══════════════════════════════════════════ */
+.fav-grid { display: flex; flex-direction: column; gap: 8px; }
+
+.fav-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--gold-light);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius3);
+  font-size: 12px;
+  animation: slideIn 0.3s ease;
+}
+
+[data-theme="dark"] .fav-mini { background: var(--surface2); }
+
+.fav-mini-icon { color: var(--gold); font-size: 14px; }
+.fav-mini-title { font-weight: 600; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fav-mini-date { color: var(--text3); font-family: var(--font-mono); font-size: 10px; }
+
+/* ═══════════════════════════════════════════
+   PAGINATION
+═══════════════════════════════════════════ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.page-info {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+}
+
+.page-buttons { display: flex; gap: 6px; align-items: center; }
+
+.page-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius3);
+  background: var(--bg2);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 600;
+  transition: all var(--transition);
+  font-family: var(--font-mono);
+}
+.page-btn:hover:not(:disabled) { background: var(--accent); color: white; border-color: var(--accent); }
+.page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════ */
+#notifications {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
+}
+
+.notification {
+  padding: 12px 16px;
+  border-radius: var(--radius2);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow3);
+  border-left: 4px solid;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastIn 0.3s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(20px); }
+}
+
+.notification.success { border-color: var(--green); color: var(--green); }
+.notification.error { border-color: var(--accent); color: var(--accent); }
+.notification.info { border-color: var(--blue); color: var(--blue); }
+.notification.warning { border-color: var(--gold); color: var(--gold); }
+
+.notification .notif-text { color: var(--text); font-size: 12px; }
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+}
+
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 14px; }
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+#footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-top: 32px;
+  text-align: center;
+}
+
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-text { font-size: 12px; color: var(--text3); }
+.footer-actions { display: flex; gap: 8px; }
+
+/* ═══════════════════════════════════════════
+   PER PAGE CONTROL
+═══════════════════════════════════════════ */
+.per-page-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text3);
+}
+.per-page-control select { width: auto; padding: 4px 8px; font-size: 12px; }
+
+/* ═══════════════════════════════════════════
+   MODAL / EDIT INDICATOR
+═══════════════════════════════════════════ */
+.edit-mode-banner {
+  background: var(--gold-light);
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius3);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.edit-mode-banner.show { display: flex; }
+
+/* ═══════════════════════════════════════════
+   SECTION TOGGLE
+═══════════════════════════════════════════ */
+.section-toggle {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius3);
+  background: var(--bg2);
+  cursor: pointer;
+  font-size: 10px;
+  transition: all var(--transition);
+  color: var(--text3);
+}
+.section-toggle:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  #browserInfo { display: none; }
+}
+
+@media (max-width: 600px) {
+  .main-layout { padding: 12px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: 1fr; }
+  .header-inner { height: auto; padding: 12px 0; flex-wrap: wrap; }
+  .filter-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════
+   HIGHLIGHT (SEARCH)
+═══════════════════════════════════════════ */
+.highlight { background: rgba(192,57,43,0.2); border-radius: 2px; }
+
+/* ═══════════════════════════════════════════
+   CATEGORY FILTER PILLS
+═══════════════════════════════════════════ */
+.pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  background: var(--bg2);
+  color: var(--text3);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.pill:hover { border-color: var(--accent); color: var(--accent); }
+.pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   RANGE DISPLAY
+═══════════════════════════════════════════ */
+.range-hint { font-size: 10px; color: var(--text3); margin-top: 2px; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════ -->
+<header id="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">📅</div>
+      <span class="logo-text">Event<span>Flow</span></span>
+    </div>
+    <div class="header-controls">
+      <div class="counter-badge">
+        Total: <strong id="totalCountBadge">0</strong>
+        &nbsp;|&nbsp;Afișate: <strong id="displayedCountBadge">0</strong>
+      </div>
+      <span id="browserInfo"></span>
+      <span class="theme-label" id="themeLabel">☀️</span>
+      <button class="theme-toggle" id="themeToggle" title="Schimbă tema" aria-label="Toggle theme"></button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════
+     MAIN LAYOUT
+══════════════════════════════════════════════ -->
+<div class="main-layout">
+
+  <!-- ───── SIDEBAR ───── -->
+  <aside class="sidebar">
+
+    <!-- FORM PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">✏️</span> Eveniment Nou</div>
+        <button class="btn btn-ghost btn-sm" id="clearFormBtn" title="Golește formularul">✕</button>
+      </div>
+      <div class="panel-body">
+        <div class="edit-mode-banner" id="editBanner">
+          ✏️ Mod editare — actualizați câmpurile
+        </div>
+
+        <form id="eventForm" novalidate>
+          <!-- Titlu -->
+          <div class="form-group">
+            <label for="fTitle">Titlu <span class="req">*</span></label>
+            <input type="text" id="fTitle" placeholder="Ex: Examen Matematică" autocomplete="off">
+            <div class="field-error" id="errTitle">Titlul este obligatoriu (min. 3 caractere)</div>
+          </div>
+
+          <!-- Categorie + Prioritate -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fCategory">Categorie <span class="req">*</span></label>
+              <select id="fCategory">
+                <option value="">— Selectați —</option>
+                <option value="academic">📚 Academic</option>
+                <option value="personal">🏠 Personal</option>
+                <option value="profesional">💼 Profesional</option>
+                <option value="social">🎉 Social</option>
+                <option value="alt">🔖 Alt</option>
+              </select>
+              <div class="field-error" id="errCategory">Selectați o categorie</div>
+            </div>
+            <div class="form-group">
+              <label for="fPriority">Prioritate <span class="req">*</span></label>
+              <select id="fPriority">
+                <option value="">— Selectați —</option>
+                <option value="inalta">🔴 Înaltă</option>
+                <option value="medie">🟡 Medie</option>
+                <option value="scazuta">🟢 Scăzută</option>
+              </select>
+              <div class="field-error" id="errPriority">Selectați o prioritate</div>
+            </div>
+          </div>
+
+          <!-- Data + Ora -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fDate">Data <span class="req">*</span></label>
+              <input type="date" id="fDate">
+              <div class="field-error" id="errDate">Data este obligatorie</div>
+            </div>
+            <div class="form-group">
+              <label for="fTime">Ora</label>
+              <input type="time" id="fTime" value="09:00">
+            </div>
+          </div>
+
+          <!-- Locatie -->
+          <div class="form-group">
+            <label for="fLocation">Locație</label>
+            <input type="text" id="fLocation" placeholder="Ex: Sala A101, Online...">
+          </div>
+
+          <!-- Status -->
+          <div class="form-group">
+            <label for="fStatus">Status <span class="req">*</span></label>
+            <select id="fStatus">
+              <option value="">— Selectați —</option>
+              <option value="planificat">📋 Planificat</option>
+              <option value="confirmat">✅ Confirmat</option>
+              <option value="anulat">❌ Anulat</option>
+              <option value="finalizat">🏁 Finalizat</option>
+            </select>
+            <div class="field-error" id="errStatus">Selectați un status</div>
+          </div>
+
+          <!-- Descriere -->
+          <div class="form-group">
+            <label for="fDesc">Descriere</label>
+            <textarea id="fDesc" placeholder="Note, detalii, instrucțiuni..."></textarea>
+          </div>
+
+          <input type="hidden" id="editingId" value="">
+
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary" style="flex:1" id="submitBtn">
+              ➕ Adaugă Eveniment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- COUNTDOWN PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">⏱️</span> Cronometru</div>
+      </div>
+      <div class="panel-body" style="padding:14px">
+        <div class="countdown-display">
+          <div class="countdown-label">Countdown până la</div>
+          <div class="countdown-event-name" id="countdownEventName">—</div>
+          <div class="countdown-units">
+            <div class="countdown-unit"><div class="val" id="cdDays">--</div><div class="lbl">Zile</div></div>
+            <div class="countdown-unit"><div class="val" id="cdHours">--</div><div class="lbl">Ore</div></div>
+            <div class="countdown-unit"><div class="val" id="cdMins">--</div><div class="lbl">Min</div></div>
+            <div class="countdown-unit"><div class="val" id="cdSecs">--</div><div class="lbl">Sec</div></div>
+          </div>
+        </div>
+        <div class="session-timer">
+          <span class="session-label">🟢 Sesiune activă</span>
+          <span class="session-time" id="sessionTime">00:00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATISTICS PANEL -->
+    <div class="panel" id="statsPanel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">📊</span> Statistici</div>
+      </div>
+      <div class="panel-body" style="padding:14px">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-number" id="statFav">0</div>
+            <div class="stat-label">Favorite</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-number" id="statDone">0</div>
+            <div class="stat-label">Finalizate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statInalta">0</div>
+            <div class="stat-label">Urgente</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-number" id="statAcademic">0</div>
+            <div class="stat-label">Academic</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-number" id="statCanceled">0</div>
+            <div class="stat-label">Anulate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ───── MAIN AREA ───── -->
+  <main class="main-area">
+
+    <!-- SEARCH + FILTER PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">🔍</span> Căutare & Filtrare</div>
+        <button class="btn btn-ghost btn-sm" id="resetFiltersBtn">Resetează</button>
+      </div>
+      <div class="panel-body">
+        <!-- Search -->
+        <div class="form-group search-wrap" style="margin-bottom:14px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Caută după titlu, locație, descriere...">
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-grid" style="margin-bottom:12px">
+          <div class="form-group" style="margin:0">
+            <label>Categorie</label>
+            <select id="filterCategory">
+              <option value="">Toate categoriile</option>
+              <option value="academic">Academic</option>
+              <option value="personal">Personal</option>
+              <option value="profesional">Profesional</option>
+              <option value="social">Social</option>
+              <option value="alt">Alt</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Status</label>
+            <select id="filterStatus">
+              <option value="">Toate statusurile</option>
+              <option value="planificat">Planificat</option>
+              <option value="confirmat">Confirmat</option>
+              <option value="anulat">Anulat</option>
+              <option value="finalizat">Finalizat</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Prioritate</label>
+            <select id="filterPriority">
+              <option value="">Toate prioritățile</option>
+              <option value="inalta">Înaltă</option>
+              <option value="medie">Medie</option>
+              <option value="scazuta">Scăzută</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Sortare</label>
+            <div class="sort-controls">
+              <select id="sortBy">
+                <option value="date">Data</option>
+                <option value="title">Titlu</option>
+                <option value="priority">Prioritate</option>
+                <option value="category">Categorie</option>
+                <option value="status">Status</option>
+                <option value="created">Creat la</option>
+              </select>
+              <button class="sort-dir-btn" id="sortDirBtn" title="Schimbă direcția">↑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTS LIST PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">📋</span> Evenimente</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="per-page-control">
+            <span>Pe pagină:</span>
+            <select id="perPageSelect">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding:16px">
+        <div class="events-list" id="eventsList">
+          <!-- Dynamic content -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="panel-header" style="border-top:1px solid var(--border); border-bottom:none; margin-top:16px; padding:12px 0 0; background:transparent">
+          <div class="pagination" id="paginationContainer">
+            <div class="page-info" id="pageInfo"></div>
+            <div class="page-buttons" id="pageButtons"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAVORITES PANEL -->
+    <div class="panel" id="favoritesPanel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">⭐</span> Favorite</div>
+        <span id="favCount" class="counter-badge" style="font-size:10px">0</span>
+      </div>
+      <div class="panel-body" style="padding:14px">
+        <div class="fav-grid" id="favList">
+          <div class="empty-state" style="padding:20px">
+            <div class="empty-icon" style="font-size:28px">⭐</div>
+            <p>Niciun eveniment favorit</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════ -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-text">
+      EventFlow © 2025 &nbsp;·&nbsp; Toate datele sunt salvate local în browser
+    </div>
+    <div class="footer-actions">
+      <button class="btn btn-secondary btn-sm" id="exportBtn">📤 Export TXT</button>
+      <button class="btn btn-danger btn-sm" id="resetAllBtn">🗑️ Șterge Tot</button>
+    </div>
+  </div>
+</footer>
+
+<!-- NOTIFICATIONS -->
+<div id="notifications"></div>
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════
+//  1. EVENT CLASS
+// ══════════════════════════════════════════════
+class CalendarEvent {
+  constructor({ id, title, category, priority, date, time, location, status, description, favorite, createdAt }) {
+    this.id          = id || crypto.randomUUID();
+    this.title       = title || '';
+    this.category    = category || '';
+    this.priority    = priority || '';
+    this.date        = date || '';
+    this.time        = time || '';
+    this.location    = location || '';
+    this.status      = status || '';
+    this.description = description || '';
+    this.favorite    = favorite || false;
+    this.createdAt   = createdAt || new Date().toISOString();
+  }
+
+  // Method 1: Returns formatted date+time string
+  getFormattedDateTime() {
+    if (!this.date) return '—';
+    const d = new Date(this.date + (this.time ? 'T' + this.time : 'T00:00'));
+    const opts = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+    const ds = d.toLocaleDateString('ro-RO', opts);
+    return this.time ? `${ds} · ${this.time}` : ds;
+  }
+
+  // Method 2: Returns how many days until event
+  daysUntil() {
+    if (!this.date) return null;
+    const now  = new Date(); now.setHours(0,0,0,0);
+    const evd  = new Date(this.date); evd.setHours(0,0,0,0);
+    return Math.ceil((evd - now) / (1000 * 60 * 60 * 24));
+  }
+}
+
+// ══════════════════════════════════════════════
+//  2. APPLICATION STATE
+// ══════════════════════════════════════════════
+let events     = [];      // main array of CalendarEvent objects
+let currentPage    = 1;
+let sortDirection  = 'asc';
+let sessionStart   = Date.now();
+let countdownTimer = null;
+let sessionTimer   = null;
+
+const PREFS_KEY  = 'eventflow_prefs';
+const EVENTS_KEY = 'eventflow_events';
+
+// ══════════════════════════════════════════════
+//  3. LOCAL STORAGE FUNCTIONS
+// ══════════════════════════════════════════════
+function saveEvents() {
+  localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+}
+
+function loadEvents() {
+  try {
+    const raw = localStorage.getItem(EVENTS_KEY);
+    if (!raw) return;
+    const arr = JSON.parse(raw);
+    events = arr.map(e => new CalendarEvent(e));
+  } catch (e) { events = []; }
+}
+
+function savePrefs() {
+  const prefs = {
+    theme:      document.documentElement.dataset.theme || 'light',
+    sortBy:     document.getElementById('sortBy').value,
+    sortDir:    sortDirection,
+    filterCat:  document.getElementById('filterCategory').value,
+    filterStat: document.getElementById('filterStatus').value,
+    filterPri:  document.getElementById('filterPriority').value,
+    search:     document.getElementById('searchInput').value,
+    perPage:    document.getElementById('perPageSelect').value,
+  };
+  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+}
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    if (p.theme) document.documentElement.dataset.theme = p.theme;
+    if (p.sortBy) document.getElementById('sortBy').value = p.sortBy;
+    if (p.sortDir) {
+      sortDirection = p.sortDir;
+      document.getElementById('sortDirBtn').textContent = sortDirection === 'asc' ? '↑' : '↓';
+    }
+    if (p.filterCat)  document.getElementById('filterCategory').value = p.filterCat;
+    if (p.filterStat) document.getElementById('filterStatus').value = p.filterStat;
+    if (p.filterPri)  document.getElementById('filterPriority').value = p.filterPri;
+    if (p.search)     document.getElementById('searchInput').value = p.search;
+    if (p.perPage)    document.getElementById('perPageSelect').value = p.perPage;
+    updateThemeLabel();
+  } catch (e) {}
+}
+
+// ══════════════════════════════════════════════
+//  4. FILTERING & SORTING
+// ══════════════════════════════════════════════
+function getFilteredSortedEvents() {
+  const search  = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cat     = document.getElementById('filterCategory').value;
+  const stat    = document.getElementById('filterStatus').value;
+  const pri     = document.getElementById('filterPriority').value;
+  const sortBy  = document.getElementById('sortBy').value;
+
+  let result = events.filter(ev => {
+    if (cat  && ev.category !== cat)   return false;
+    if (stat && ev.status   !== stat)  return false;
+    if (pri  && ev.priority !== pri)   return false;
+    if (search) {
+      const haystack = [ev.title, ev.location, ev.description].join(' ').toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const pmap = { inalta: 3, medie: 2, scazuta: 1 };
+  result.sort((a, b) => {
+    let va, vb;
+    switch (sortBy) {
+      case 'title':    va = a.title.toLowerCase();    vb = b.title.toLowerCase();    break;
+      case 'priority': va = pmap[a.priority] || 0;   vb = pmap[b.priority] || 0;    break;
+      case 'category': va = a.category;               vb = b.category;               break;
+      case 'status':   va = a.status;                 vb = b.status;                 break;
+      case 'created':  va = a.createdAt;              vb = b.createdAt;              break;
+      default:         va = a.date + (a.time||'');    vb = b.date + (b.time||'');
+    }
+    if (va < vb) return sortDirection === 'asc' ? -1 : 1;
+    if (va > vb) return sortDirection === 'asc' ?  1 : -1;
+    return 0;
+  });
+
+  return result;
+}
+
+// ══════════════════════════════════════════════
+//  5. RENDER EVENTS LIST
+// ══════════════════════════════════════════════
+function renderEvents() {
+  const list      = document.getElementById('eventsList');
+  const perPage   = parseInt(document.getElementById('perPageSelect').value);
+  const filtered  = getFilteredSortedEvents();
+  const total     = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  const start  = (currentPage - 1) * perPage;
+  const pageItems = filtered.slice(start, start + perPage);
+
+  // Update counters
+  document.getElementById('totalCountBadge').textContent = events.length;
+  document.getElementById('displayedCountBadge').textContent = total;
+
+  // Clear
+  list.innerHTML = '';
+
+  if (pageItems.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>${
+      events.length === 0 ? 'Niciun eveniment adăugat. Folosiți formularul din stânga.' : 'Niciun eveniment corespunde filtrelor selectate.'
+    }</p></div>`;
+  } else {
+    const search = document.getElementById('searchInput').value.trim();
+    pageItems.forEach(ev => {
+      const card = buildEventCard(ev, search);
+      list.appendChild(card);
+    });
+  }
+
+  renderPagination(totalPages);
+  updateStats();
+  renderFavorites();
+  updateCountdown();
+  savePrefs();
+}
+
+function highlight(text, query) {
+  if (!query) return escHtml(text);
+  const re = new RegExp(`(${escRe(query)})`, 'gi');
+  return escHtml(text).replace(re, '<mark class="highlight">$1</mark>');
+}
+
+function escHtml(t) {
+  return (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function escRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildEventCard(ev, searchQ) {
+  const card = document.createElement('div');
+  card.className = `event-card priority-${ev.priority}${ev.favorite ? ' favorite-card' : ''}`;
+  card.dataset.id = ev.id;
+
+  const days = ev.daysUntil();
+  let daysLabel = '';
+  if (days !== null) {
+    if (days < 0)      daysLabel = `<span style="color:var(--text3)">${Math.abs(days)}z trecut</span>`;
+    else if (days === 0) daysLabel = `<span style="color:var(--accent);font-weight:700">AZI</span>`;
+    else if (days === 1) daysLabel = `<span style="color:var(--gold);font-weight:700">MÂINE</span>`;
+    else if (days <= 7)  daysLabel = `<span style="color:var(--gold)">peste ${days}z</span>`;
+    else                 daysLabel = `<span>peste ${days}z</span>`;
+  }
+
+  card.innerHTML = `
+    <div class="event-header">
+      <div class="event-title-row">
+        <div class="event-title">${highlight(ev.title, searchQ)}</div>
+        <div class="event-meta">
+          <span class="badge badge-cat-${ev.category}">${catLabel(ev.category)}</span>
+          <span class="badge badge-status-${ev.status}">${statLabel(ev.status)}</span>
+          <span class="badge badge-priority-${ev.priority}">${priLabel(ev.priority)}</span>
+        </div>
+      </div>
+      <div class="event-actions">
+        <button class="icon-btn fav-btn ${ev.favorite ? 'active' : ''}" data-id="${ev.id}" title="${ev.favorite ? 'Elimină din favorite' : 'Adaugă la favorite'}">⭐</button>
+        <button class="icon-btn edit-btn" data-id="${ev.id}" title="Editează">✏️</button>
+        <button class="icon-btn del-btn" data-id="${ev.id}" title="Șterge">🗑️</button>
+      </div>
+    </div>
+    ${ev.description ? `<div class="event-body">${highlight(ev.description, searchQ)}</div>` : ''}
+    <div class="event-footer">
+      <div class="event-date-display">
+        📅 ${ev.getFormattedDateTime()}
+        ${ev.location ? `&nbsp;·&nbsp; 📍 ${escHtml(ev.location)}` : ''}
+      </div>
+      <div>${daysLabel}</div>
+    </div>`;
+
+  // Events on card buttons
+  card.querySelector('.fav-btn').addEventListener('click', () => toggleFavorite(ev.id));
+  card.querySelector('.edit-btn').addEventListener('click', () => editEvent(ev.id));
+  card.querySelector('.del-btn').addEventListener('click', () => deleteEvent(ev.id));
+
+  card.addEventListener('mouseover', () => card.style.borderColor = 'var(--border2)');
+  card.addEventListener('mouseout',  () => card.style.borderColor = ev.favorite ? 'var(--gold)' : '');
+
+  return card;
+}
+
+// ══════════════════════════════════════════════
+//  6. PAGINATION
+// ══════════════════════════════════════════════
+function renderPagination(totalPages) {
+  const filtered = getFilteredSortedEvents().length;
+  const perPage  = parseInt(document.getElementById('perPageSelect').value);
+  const info = document.getElementById('pageInfo');
+  const btns = document.getElementById('pageButtons');
+
+  info.textContent = filtered === 0 ? '' : `Pagina ${currentPage} din ${totalPages} (${filtered} rezultate)`;
+  btns.innerHTML = '';
+
+  const prev = document.createElement('button');
+  prev.className = 'page-btn';
+  prev.textContent = '← Anterior';
+  prev.disabled = currentPage === 1;
+  prev.addEventListener('click', () => { currentPage--; renderEvents(); });
+  btns.appendChild(prev);
+
+  // Page number buttons (max 5 shown)
+  const maxBtns = 5;
+  let startP = Math.max(1, currentPage - 2);
+  let endP   = Math.min(totalPages, startP + maxBtns - 1);
+  if (endP - startP < maxBtns - 1) startP = Math.max(1, endP - maxBtns + 1);
+
+  for (let p = startP; p <= endP; p++) {
+    const pb = document.createElement('button');
+    pb.className = 'page-btn' + (p === currentPage ? ' active' : '');
+    pb.textContent = p;
+    const pp = p;
+    pb.addEventListener('click', () => { currentPage = pp; renderEvents(); });
+    btns.appendChild(pb);
+  }
+
+  const next = document.createElement('button');
+  next.className = 'page-btn';
+  next.textContent = 'Următor →';
+  next.disabled = currentPage === totalPages || totalPages === 0;
+  next.addEventListener('click', () => { currentPage++; renderEvents(); });
+  btns.appendChild(next);
+}
+
+// ══════════════════════════════════════════════
+//  7. STATISTICS
+// ══════════════════════════════════════════════
+function updateStats() {
+  document.getElementById('statTotal').textContent    = events.length;
+  document.getElementById('statFav').textContent      = events.filter(e => e.favorite).length;
+  document.getElementById('statDone').textContent     = events.filter(e => e.status === 'finalizat').length;
+  document.getElementById('statInalta').textContent   = events.filter(e => e.priority === 'inalta').length;
+  document.getElementById('statAcademic').textContent = events.filter(e => e.category === 'academic').length;
+  document.getElementById('statCanceled').textContent = events.filter(e => e.status === 'anulat').length;
+  document.getElementById('favCount').textContent     = events.filter(e => e.favorite).length;
+}
+
+// ══════════════════════════════════════════════
+//  8. FAVORITES
+// ══════════════════════════════════════════════
+function renderFavorites() {
+  const favs = events.filter(e => e.favorite);
+  const list = document.getElementById('favList');
+  list.innerHTML = '';
+
+  if (favs.length === 0) {
+    list.innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:28px">⭐</div><p>Niciun eveniment favorit</p></div>`;
+    return;
+  }
+
+  favs.forEach(ev => {
+    const div = document.createElement('div');
+    div.className = 'fav-mini';
+    div.innerHTML = `
+      <span class="fav-mini-icon">⭐</span>
+      <span class="fav-mini-title">${escHtml(ev.title)}</span>
+      <span class="fav-mini-date">${ev.date || '—'}</span>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleFavorite(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  ev.favorite = !ev.favorite;
+  saveEvents();
+  renderEvents();
+  showNotif(ev.favorite ? '⭐ Adăugat la favorite' : 'Eliminat din favorite', ev.favorite ? 'warning' : 'info');
+}
+
+// ══════════════════════════════════════════════
+//  9. CRUD OPERATIONS
+// ══════════════════════════════════════════════
+function addOrUpdateEvent(data) {
+  const editId = document.getElementById('editingId').value;
+
+  if (editId) {
+    const idx = events.findIndex(e => e.id === editId);
+    if (idx > -1) {
+      events[idx] = new CalendarEvent({ ...events[idx], ...data });
+      showNotif('✏️ Eveniment actualizat cu succes!', 'success');
+    }
+  } else {
+    events.unshift(new CalendarEvent(data));
+    showNotif('✅ Eveniment adăugat cu succes!', 'success');
+    currentPage = 1;
+  }
+
+  saveEvents();
+  clearForm();
+  renderEvents();
+}
+
+function editEvent(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+
+  document.getElementById('fTitle').value    = ev.title;
+  document.getElementById('fCategory').value = ev.category;
+  document.getElementById('fPriority').value = ev.priority;
+  document.getElementById('fDate').value     = ev.date;
+  document.getElementById('fTime').value     = ev.time;
+  document.getElementById('fLocation').value = ev.location;
+  document.getElementById('fStatus').value   = ev.status;
+  document.getElementById('fDesc').value     = ev.description;
+  document.getElementById('editingId').value = ev.id;
+
+  document.getElementById('editBanner').classList.add('show');
+  document.getElementById('submitBtn').textContent = '💾 Salvează Modificările';
+
+  // Scroll to form
+  document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Mark fields valid
+  ['fTitle','fCategory','fPriority','fDate','fStatus'].forEach(id => {
+    document.getElementById(id).classList.remove('invalid');
+    document.getElementById(id).classList.add('valid');
+  });
+}
+
+function deleteEvent(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+
+  if (!window.confirm(`Ștergeți evenimentul "${ev.title}"?`)) return;
+
+  const card = document.querySelector(`.event-card[data-id="${id}"]`);
+  if (card) {
+    card.classList.add('removing');
+    setTimeout(() => {
+      events = events.filter(e => e.id !== id);
+      saveEvents();
+      renderEvents();
+      showNotif('🗑️ Eveniment șters', 'error');
+    }, 300);
+  } else {
+    events = events.filter(e => e.id !== id);
+    saveEvents();
+    renderEvents();
+    showNotif('🗑️ Eveniment șters', 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  10. FORM VALIDATION
+// ══════════════════════════════════════════════
+const validationRules = {
+  fTitle:    { min: 3,  errId: 'errTitle',    msg: 'Titlul este obligatoriu (min. 3 caractere)' },
+  fCategory: { min: 1,  errId: 'errCategory', msg: 'Selectați o categorie' },
+  fPriority: { min: 1,  errId: 'errPriority', msg: 'Selectați o prioritate' },
+  fDate:     { min: 1,  errId: 'errDate',     msg: 'Data este obligatorie' },
+  fStatus:   { min: 1,  errId: 'errStatus',   msg: 'Selectați un status' },
+};
+
+function validateField(fieldId) {
+  const field = document.getElementById(fieldId);
+  const rule  = validationRules[fieldId];
+  if (!rule) return true;
+
+  const val = field.value.trim();
+  const err = document.getElementById(rule.errId);
+
+  if (!val || val.length < rule.min) {
+    field.classList.add('invalid');
+    field.classList.remove('valid');
+    err.textContent = rule.msg;
+    err.classList.add('show');
+    return false;
+  } else {
+    field.classList.remove('invalid');
+    field.classList.add('valid');
+    err.classList.remove('show');
+    return true;
+  }
+}
+
+function validateAll() {
+  return Object.keys(validationRules).map(validateField).every(v => v);
+}
+
+function clearForm() {
+  document.getElementById('eventForm').reset();
+  document.getElementById('editingId').value = '';
+  document.getElementById('editBanner').classList.remove('show');
+  document.getElementById('submitBtn').textContent = '➕ Adaugă Eveniment';
+  Object.keys(validationRules).forEach(id => {
+    document.getElementById(id).classList.remove('invalid','valid');
+    const rule = validationRules[id];
+    document.getElementById(rule.errId).classList.remove('show');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  11. COUNTDOWN & SESSION TIMER
+// ══════════════════════════════════════════════
+function updateCountdown() {
+  // Find next upcoming confirmed or planned event
+  const upcoming = events
+    .filter(e => e.date && (e.status === 'planificat' || e.status === 'confirmat'))
+    .sort((a, b) => (a.date + a.time) > (b.date + b.time) ? 1 : -1)
+    .find(e => new Date(e.date) >= new Date(new Date().toDateString()));
+
+  if (!upcoming) {
+    document.getElementById('countdownEventName').textContent = 'Niciun eveniment viitor';
+    ['cdDays','cdHours','cdMins','cdSecs'].forEach(id => document.getElementById(id).textContent = '--');
+    return;
+  }
+
+  document.getElementById('countdownEventName').textContent = upcoming.title;
+
+  if (countdownTimer) clearInterval(countdownTimer);
+
+  function tick() {
+    const target = new Date(upcoming.date + 'T' + (upcoming.time || '00:00'));
+    const now    = new Date();
+    let diff     = target - now;
+
+    if (diff <= 0) {
+      ['cdDays','cdHours','cdMins','cdSecs'].forEach(id => document.getElementById(id).textContent = '00');
+      clearInterval(countdownTimer);
+      return;
+    }
+
+    const d = Math.floor(diff / 86400000); diff %= 86400000;
+    const h = Math.floor(diff / 3600000);  diff %= 3600000;
+    const m = Math.floor(diff / 60000);    diff %= 60000;
+    const s = Math.floor(diff / 1000);
+
+    document.getElementById('cdDays').textContent  = String(d).padStart(2,'0');
+    document.getElementById('cdHours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cdMins').textContent  = String(m).padStart(2,'0');
+    document.getElementById('cdSecs').textContent  = String(s).padStart(2,'0');
+  }
+
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+
+function startSessionTimer() {
+  sessionStart = Date.now();
+  if (sessionTimer) clearInterval(sessionTimer);
+  sessionTimer = setInterval(() => {
+    const elapsed = Date.now() - sessionStart;
+    const h = Math.floor(elapsed / 3600000);
+    const m = Math.floor((elapsed % 3600000) / 60000);
+    const s = Math.floor((elapsed % 60000) / 1000);
+    document.getElementById('sessionTime').textContent =
+      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+// ══════════════════════════════════════════════
+//  12. NOTIFICATIONS
+// ══════════════════════════════════════════════
+function showNotif(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⭐' };
+  const container = document.getElementById('notifications');
+  const notif = document.createElement('div');
+  notif.className = `notification ${type}`;
+  notif.innerHTML = `<span>${icons[type]}</span><span class="notif-text">${msg}</span>`;
+  container.appendChild(notif);
+
+  setTimeout(() => {
+    notif.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => notif.remove(), 300);
+  }, 3000);
+}
+
+// ══════════════════════════════════════════════
+//  13. EXPORT
+// ══════════════════════════════════════════════
+function exportTxt() {
+  if (events.length === 0) { showNotif('Nu există date de exportat', 'error'); return; }
+
+  let txt = `EVENTFLOW — EXPORT EVENIMENTE\n`;
+  txt += `Data export: ${new Date().toLocaleString('ro-RO')}\n`;
+  txt += `Total: ${events.length} evenimente\n`;
+  txt += '═'.repeat(60) + '\n\n';
+
+  events.forEach((ev, i) => {
+    txt += `${i+1}. ${ev.title}\n`;
+    txt += `   Categorie: ${catLabel(ev.category)} | Prioritate: ${priLabel(ev.priority)} | Status: ${statLabel(ev.status)}\n`;
+    txt += `   Data: ${ev.getFormattedDateTime()}\n`;
+    if (ev.location)    txt += `   Locație: ${ev.location}\n`;
+    if (ev.description) txt += `   Descriere: ${ev.description}\n`;
+    if (ev.favorite)    txt += `   ⭐ FAVORIT\n`;
+    txt += '\n';
+  });
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `eventflow_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showNotif('📤 Export finalizat!', 'success');
+}
+
+// ══════════════════════════════════════════════
+//  14. THEME
+// ══════════════════════════════════════════════
+function toggleTheme() {
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
+  updateThemeLabel();
+  savePrefs();
+}
+
+function updateThemeLabel() {
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  document.getElementById('themeLabel').textContent = isDark ? '🌙' : '☀️';
+}
+
+// ══════════════════════════════════════════════
+//  15. HELPER LABELS
+// ══════════════════════════════════════════════
+function catLabel(v) {
+  return { academic:'Academic', personal:'Personal', profesional:'Profesional', social:'Social', alt:'Alt' }[v] || v;
+}
+function statLabel(v) {
+  return { planificat:'Planificat', confirmat:'Confirmat', anulat:'Anulat', finalizat:'Finalizat' }[v] || v;
+}
+function priLabel(v) {
+  return { inalta:'Înaltă', medie:'Medie', scazuta:'Scăzută' }[v] || v;
+}
+
+// ══════════════════════════════════════════════
+//  16. SAMPLE DATA
+// ══════════════════════════════════════════════
+function loadSampleData() {
+  const today = new Date();
+  const fmt = (offset) => {
+    const d = new Date(today); d.setDate(d.getDate() + offset);
+    return d.toISOString().split('T')[0];
+  };
+
+  const samples = [
+    { title:'Examen Analiză Matematică', category:'academic', priority:'inalta', date:fmt(3), time:'09:00', location:'Sala B204', status:'confirmat', description:'Materie: integrale duble, serii Fourier. Adus calculator!', favorite:true },
+    { title:'Conferință Business Innovation', category:'profesional', priority:'inalta', date:fmt(5), time:'14:00', location:'Hotel Radisson', status:'planificat', description:'Prezentare proiect startup. Pregătit pitch deck.', favorite:false },
+    { title:'Aniversare mama', category:'personal', priority:'medie', date:fmt(7), time:'18:00', location:'Restaurant Vatra', status:'confirmat', description:'Rezervare făcută pentru 8 persoane.', favorite:true },
+    { title:'Workshop JavaScript Avansat', category:'academic', priority:'medie', date:fmt(10), time:'10:00', location:'Online - Zoom', status:'planificat', description:'React Hooks, Context API, performanță.', favorite:false },
+    { title:'Dentist - control', category:'personal', priority:'scazuta', date:fmt(14), time:'11:30', location:'Clinica Dent Expert', status:'planificat', description:'Control de rutină.', favorite:false },
+    { title:'Team Building Departament', category:'social', priority:'medie', date:fmt(12), time:'09:00', location:'Parc Dendrarium', status:'confirmat', description:'Activități outdoor, adus echipament sport.', favorite:false },
+    { title:'Predare proiect de curs', category:'academic', priority:'inalta', date:fmt(2), time:'23:59', location:'Moodle online', status:'planificat', description:'Documentație + cod sursă + prezentare.', favorite:false },
+    { title:'Meetup Tech Community', category:'social', priority:'scazuta', date:fmt(20), time:'18:30', location:'Hub IT Chișinău', status:'planificat', description:'Networking și prezentări tehnice.', favorite:false },
+  ];
+
+  samples.forEach(s => events.push(new CalendarEvent(s)));
+  saveEvents();
+  renderEvents();
+  showNotif('📚 Date de demonstrație încărcate!', 'info');
+}
+
+// ══════════════════════════════════════════════
+//  17. EVENT LISTENERS — DOMContentLoaded
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Browser info (BOM)
+  const ua = navigator.userAgent;
+  let browser = 'Browser necunoscut';
+  if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
+  else if (ua.includes('Firefox')) browser = 'Firefox';
+  else if (ua.includes('Edg')) browser = 'Edge';
+  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+  document.getElementById('browserInfo').textContent = browser + ' | ' + (navigator.platform || '');
+
+  // Load data
+  loadPrefs();
+  loadEvents();
+
+  if (events.length === 0) {
+    // Load sample data on first run
+    loadSampleData();
+  } else {
+    renderEvents();
+  }
+
+  startSessionTimer();
+
+  // Form SUBMIT
+  document.getElementById('eventForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!validateAll()) {
+      showNotif('⚠️ Completați câmpurile obligatorii', 'error');
+      return;
+    }
+    addOrUpdateEvent({
+      title:       document.getElementById('fTitle').value.trim(),
+      category:    document.getElementById('fCategory').value,
+      priority:    document.getElementById('fPriority').value,
+      date:        document.getElementById('fDate').value,
+      time:        document.getElementById('fTime').value,
+      location:    document.getElementById('fLocation').value.trim(),
+      status:      document.getElementById('fStatus').value,
+      description: document.getElementById('fDesc').value.trim(),
+    });
+  });
+
+  // Real-time validation on INPUT / CHANGE / BLUR
+  Object.keys(validationRules).forEach(fieldId => {
+    const el = document.getElementById(fieldId);
+    el.addEventListener('input',  () => validateField(fieldId));
+    el.addEventListener('change', () => validateField(fieldId));
+    el.addEventListener('blur',   () => validateField(fieldId));
+  });
+
+  // Search (keyup + input)
+  document.getElementById('searchInput').addEventListener('keyup', () => {
+    currentPage = 1; renderEvents();
+  });
+  document.getElementById('searchInput').addEventListener('input', () => {
+    currentPage = 1; renderEvents();
+  });
+
+  // Filters
+  document.getElementById('filterCategory').addEventListener('change', () => { currentPage=1; renderEvents(); });
+  document.getElementById('filterStatus').addEventListener('change',   () => { currentPage=1; renderEvents(); });
+  document.getElementById('filterPriority').addEventListener('change', () => { currentPage=1; renderEvents(); });
+
+  // Sort
+  document.getElementById('sortBy').addEventListener('change', () => renderEvents());
+  document.getElementById('sortDirBtn').addEventListener('click', () => {
+    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    document.getElementById('sortDirBtn').textContent = sortDirection === 'asc' ? '↑' : '↓';
+    renderEvents();
+  });
+
+  // Per page
+  document.getElementById('perPageSelect').addEventListener('change', () => { currentPage=1; renderEvents(); });
+
+  // Reset filters
+  document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterStatus').value   = '';
+    document.getElementById('filterPriority').value = '';
+    document.getElementById('searchInput').value    = '';
+    document.getElementById('sortBy').value         = 'date';
+    sortDirection = 'asc';
+    document.getElementById('sortDirBtn').textContent = '↑';
+    currentPage = 1;
+    renderEvents();
+    showNotif('🔄 Filtre resetate', 'info');
+  });
+
+  // Clear form
+  document.getElementById('clearFormBtn').addEventListener('click', clearForm);
+
+  // Theme toggle
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+  // Export
+  document.getElementById('exportBtn').addEventListener('click', exportTxt);
+
+  // Reset all (BOM: confirm)
+  document.getElementById('resetAllBtn').addEventListener('click', () => {
+    if (!window.confirm('Ștergeți TOATE evenimentele? Această acțiune este ireversibilă.')) return;
+    events = [];
+    localStorage.removeItem(EVENTS_KEY);
+    currentPage = 1;
+    clearForm();
+    renderEvents();
+    showNotif('🗑️ Toate evenimentele au fost șterse', 'error');
+  });
+
+  // Keyboard shortcut: ESC = clear form
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') clearForm();
+  });
+
+});
+</script>
+</body>
+</html>
