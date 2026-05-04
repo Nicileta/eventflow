@@ -1,6 +1,4 @@
-// ══════════════════════════════════════════════
-// AUTH HELPERS
-// ══════════════════════════════════════════════
+
 
 function getUser() {
   try { return JSON.parse(localStorage.getItem('ef_user')); } 
