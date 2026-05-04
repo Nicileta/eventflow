@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventFlow — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f2ec;
+  --bg2: #eee9e0;
+  --surface: #ffffff;
+  --border: #d8d0c4;
+  --text: #1a1713;
+  --text2: #4a4540;
+  --text3: #7a726a;
+  --accent: #c0392b;
+  --accent2: #e74c3c;
+  --accent-light: #fde8e6;
+  --green: #27ae60;
+  --shadow3: 0 8px 40px rgba(0,0,0,0.16);
+  --radius3: 6px;
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0f0e0c;
+  --bg2: #161411;
+  --surface: #1e1b17;
+  --border: #2e2a24;
+  --text: #f0ebe3;
+  --text2: #b8b0a4;
+  --text3: #7a726a;
+  --accent: #e74c3c;
+  --accent-light: #2a1210;
+  --shadow3: 0 8px 40px rgba(0,0,0,0.5);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow3);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.logo-mark {
+  width: 64px; height: 64px;
+  background: var(--accent);
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(192,57,43,0.3);
+}
+.login-logo h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--text);
+}
+.login-logo h1 span { color: var(--accent); }
+.login-logo p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+.form-group { margin-bottom: 14px; }
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius3);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: var(--radius3);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  margin-top: 8px;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-error {
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: none;
+}
+.login-error.show { display: block; }
+.theme-btn {
+  position: fixed;
+  top: 16px; right: 16px;
+  width: 36px; height: 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<button class="theme-btn" id="themeBtn">☀️</button>
+
+<div class="login-card">
+  <div class="login-logo">
+    <div class="logo-mark">⚡</div>
+    <h1>Event<span>Flow</span></h1>
+    <p>Tech Support & Event Management</p>
+  </div>
+
+  <div class="login-error" id="loginError"></div>
+
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label for="password">Parolă</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn btn-primary" id="loginBtn">
+      🔐 Autentificare
+    </button>
+  </form>
+</div>
+
+<script src="auth.js"></script>
+<script>
+  // Theme
+  const saved = localStorage.getItem('ef_theme') || 'light';
+  document.documentElement.dataset.theme = saved;
+  document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
+
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const isDark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
+    localStorage.setItem('ef_theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  });
+
+  // Login
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
+    btn.textContent = '⏳ Se autentifică...';
+    btn.disabled = true;
+    err.classList.remove('show');
+
+    try {
+      const res = await fetch('backend/auth.php?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value.trim(),
+          password: document.getElementById('password').value
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem('ef_user', JSON.stringify(data.user));
+        window.location.href = 'index.html';
+      } else {
+        err.textContent = data.error || 'Username sau parola incorecta';
+        err.classList.add('show');
+        btn.textContent = '🔐 Autentificare';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      err.textContent = 'Eroare de conexiune la server';
+      err.classList.add('show');
+      btn.textContent = '🔐 Autentificare';
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
