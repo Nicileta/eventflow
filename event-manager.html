@@ -6,9 +6,7 @@
 <title>EventFlow — Manager de Evenimente</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════
-   CSS VARIABLES & RESET
-═══════════════════════════════════════════ */
+
 :root {
   --bg: #f5f2ec;
   --bg2: #eee9e0;
@@ -81,16 +79,12 @@ body {
   line-height: 1.6;
 }
 
-/* ═══════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════ */
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-/* ═══════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════ */
+
 #header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -190,9 +184,7 @@ body {
   white-space: nowrap;
 }
 
-/* ═══════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════ */
+
 .main-layout {
   max-width: 1400px;
   margin: 0 auto;
@@ -206,9 +198,7 @@ body {
 .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; }
 .main-area { display: flex; flex-direction: column; gap: 16px; }
 
-/* ═══════════════════════════════════════════
-   CARDS / PANELS
-═══════════════════════════════════════════ */
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -238,9 +228,6 @@ body {
 .panel-title .icon { font-size: 15px; }
 .panel-body { padding: 20px; }
 
-/* ═══════════════════════════════════════════
-   FORM
-═══════════════════════════════════════════ */
 .form-group { margin-bottom: 14px; }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -296,9 +283,7 @@ textarea { resize: vertical; min-height: 72px; }
 
 .field-error.show { display: block; }
 
-/* ═══════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════ */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -340,9 +325,7 @@ textarea { resize: vertical; min-height: 72px; }
 .btn-full { width: 100%; }
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ═══════════════════════════════════════════
-   SEARCH / FILTER BAR
-═══════════════════════════════════════════ */
+
 .search-wrap { position: relative; }
 .search-wrap input { padding-left: 36px; }
 .search-wrap .search-icon {
@@ -381,9 +364,7 @@ textarea { resize: vertical; min-height: 72px; }
 }
 .sort-dir-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* ═══════════════════════════════════════════
-   STATISTICS
-═══════════════════════════════════════════ */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -419,9 +400,7 @@ textarea { resize: vertical; min-height: 72px; }
 .stat-card.blue .stat-number { color: var(--blue); }
 .stat-card.purple .stat-number { color: var(--purple); }
 
-/* ═══════════════════════════════════════════
-   COUNTDOWN
-═══════════════════════════════════════════ */
+
 .countdown-display {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -492,9 +471,7 @@ textarea { resize: vertical; min-height: 72px; }
 .session-label { font-size: 11px; color: var(--text3); }
 .session-time { font-family: var(--font-mono); font-size: 14px; color: var(--green); font-weight: 500; }
 
-/* ═══════════════════════════════════════════
-   EVENT CARDS
-═══════════════════════════════════════════ */
+
 .events-list { display: flex; flex-direction: column; gap: 10px; }
 
 .event-card {
@@ -629,9 +606,7 @@ textarea { resize: vertical; min-height: 72px; }
 
 .event-date-display { display: flex; align-items: center; gap: 4px; }
 
-/* ═══════════════════════════════════════════
-   FAVORITES SECTION
-═══════════════════════════════════════════ */
+
 .fav-grid { display: flex; flex-direction: column; gap: 8px; }
 
 .fav-mini {
@@ -652,9 +627,7 @@ textarea { resize: vertical; min-height: 72px; }
 .fav-mini-title { font-weight: 600; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fav-mini-date { color: var(--text3); font-family: var(--font-mono); font-size: 10px; }
 
-/* ═══════════════════════════════════════════
-   PAGINATION
-═══════════════════════════════════════════ */
+
 .pagination {
   display: flex;
   align-items: center;
@@ -687,9 +660,7 @@ textarea { resize: vertical; min-height: 72px; }
 .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* ═══════════════════════════════════════════
-   NOTIFICATIONS
-═══════════════════════════════════════════ */
+
 #notifications {
   position: fixed;
   bottom: 24px; right: 24px;
@@ -731,9 +702,7 @@ textarea { resize: vertical; min-height: 72px; }
 
 .notification .notif-text { color: var(--text); font-size: 12px; }
 
-/* ═══════════════════════════════════════════
-   EMPTY STATE
-═══════════════════════════════════════════ */
+
 .empty-state {
   text-align: center;
   padding: 48px 24px;
@@ -743,9 +712,7 @@ textarea { resize: vertical; min-height: 72px; }
 .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
 .empty-state p { font-size: 14px; }
 
-/* ═══════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════ */
+
 #footer {
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -767,9 +734,7 @@ textarea { resize: vertical; min-height: 72px; }
 .footer-text { font-size: 12px; color: var(--text3); }
 .footer-actions { display: flex; gap: 8px; }
 
-/* ═══════════════════════════════════════════
-   PER PAGE CONTROL
-═══════════════════════════════════════════ */
+
 .per-page-control {
   display: flex;
   align-items: center;
@@ -779,9 +744,7 @@ textarea { resize: vertical; min-height: 72px; }
 }
 .per-page-control select { width: auto; padding: 4px 8px; font-size: 12px; }
 
-/* ═══════════════════════════════════════════
-   MODAL / EDIT INDICATOR
-═══════════════════════════════════════════ */
+
 .edit-mode-banner {
   background: var(--gold-light);
   border: 1.5px solid var(--gold);
@@ -797,9 +760,7 @@ textarea { resize: vertical; min-height: 72px; }
 }
 .edit-mode-banner.show { display: flex; }
 
-/* ═══════════════════════════════════════════
-   SECTION TOGGLE
-═══════════════════════════════════════════ */
+
 .section-toggle {
   width: 24px; height: 24px;
   display: flex; align-items: center; justify-content: center;
@@ -813,9 +774,7 @@ textarea { resize: vertical; min-height: 72px; }
 }
 .section-toggle:hover { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════ */
+
 @media (max-width: 900px) {
   .main-layout { grid-template-columns: 1fr; }
   .sidebar { position: static; }
@@ -831,14 +790,9 @@ textarea { resize: vertical; min-height: 72px; }
   .filter-grid { grid-template-columns: 1fr; }
 }
 
-/* ═══════════════════════════════════════════
-   HIGHLIGHT (SEARCH)
-═══════════════════════════════════════════ */
+
 .highlight { background: rgba(192,57,43,0.2); border-radius: 2px; }
 
-/* ═══════════════════════════════════════════
-   CATEGORY FILTER PILLS
-═══════════════════════════════════════════ */
 .pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
 .pill {
   padding: 4px 10px;
@@ -854,17 +808,13 @@ textarea { resize: vertical; min-height: 72px; }
 .pill:hover { border-color: var(--accent); color: var(--accent); }
 .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* ═══════════════════════════════════════════
-   RANGE DISPLAY
-═══════════════════════════════════════════ */
+
 .range-hint { font-size: 10px; color: var(--text3); margin-top: 2px; font-family: var(--font-mono); }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════
-     HEADER
-══════════════════════════════════════════════ -->
+
 <header id="header">
   <div class="header-inner">
     <div class="logo">
@@ -883,9 +833,7 @@ textarea { resize: vertical; min-height: 72px; }
   </div>
 </header>
 
-<!-- ══════════════════════════════════════════════
-     MAIN LAYOUT
-══════════════════════════════════════════════ -->
+
 <div class="main-layout">
 
   <!-- ───── SIDEBAR ───── -->
@@ -1161,9 +1109,7 @@ textarea { resize: vertical; min-height: 72px; }
   </main>
 </div>
 
-<!-- ══════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════ -->
+
 <footer id="footer">
   <div class="footer-inner">
     <div class="footer-text">
@@ -1179,15 +1125,11 @@ textarea { resize: vertical; min-height: 72px; }
 <!-- NOTIFICATIONS -->
 <div id="notifications"></div>
 
-<!-- ══════════════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════════════ -->
+
 <script>
 'use strict';
 
-// ══════════════════════════════════════════════
-//  1. EVENT CLASS
-// ══════════════════════════════════════════════
+
 class CalendarEvent {
   constructor({ id, title, category, priority, date, time, location, status, description, favorite, createdAt }) {
     this.id          = id || crypto.randomUUID();
@@ -1221,9 +1163,7 @@ class CalendarEvent {
   }
 }
 
-// ══════════════════════════════════════════════
-//  2. APPLICATION STATE
-// ══════════════════════════════════════════════
+
 let events     = [];      // main array of CalendarEvent objects
 let currentPage    = 1;
 let sortDirection  = 'asc';
@@ -1234,9 +1174,7 @@ let sessionTimer   = null;
 const PREFS_KEY  = 'eventflow_prefs';
 const EVENTS_KEY = 'eventflow_events';
 
-// ══════════════════════════════════════════════
-//  3. LOCAL STORAGE FUNCTIONS
-// ══════════════════════════════════════════════
+
 function saveEvents() {
   localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
 }
@@ -1284,9 +1222,7 @@ function loadPrefs() {
   } catch (e) {}
 }
 
-// ══════════════════════════════════════════════
-//  4. FILTERING & SORTING
-// ══════════════════════════════════════════════
+
 function getFilteredSortedEvents() {
   const search  = document.getElementById('searchInput').value.trim().toLowerCase();
   const cat     = document.getElementById('filterCategory').value;
@@ -1324,9 +1260,7 @@ function getFilteredSortedEvents() {
   return result;
 }
 
-// ══════════════════════════════════════════════
-//  5. RENDER EVENTS LIST
-// ══════════════════════════════════════════════
+
 function renderEvents() {
   const list      = document.getElementById('eventsList');
   const perPage   = parseInt(document.getElementById('perPageSelect').value);
@@ -1431,9 +1365,7 @@ function buildEventCard(ev, searchQ) {
   return card;
 }
 
-// ══════════════════════════════════════════════
-//  6. PAGINATION
-// ══════════════════════════════════════════════
+
 function renderPagination(totalPages) {
   const filtered = getFilteredSortedEvents().length;
   const perPage  = parseInt(document.getElementById('perPageSelect').value);
@@ -1473,9 +1405,7 @@ function renderPagination(totalPages) {
   btns.appendChild(next);
 }
 
-// ══════════════════════════════════════════════
-//  7. STATISTICS
-// ══════════════════════════════════════════════
+
 function updateStats() {
   document.getElementById('statTotal').textContent    = events.length;
   document.getElementById('statFav').textContent      = events.filter(e => e.favorite).length;
@@ -1486,9 +1416,7 @@ function updateStats() {
   document.getElementById('favCount').textContent     = events.filter(e => e.favorite).length;
 }
 
-// ══════════════════════════════════════════════
-//  8. FAVORITES
-// ══════════════════════════════════════════════
+
 function renderFavorites() {
   const favs = events.filter(e => e.favorite);
   const list = document.getElementById('favList');
@@ -1519,9 +1447,7 @@ function toggleFavorite(id) {
   showNotif(ev.favorite ? '⭐ Adăugat la favorite' : 'Eliminat din favorite', ev.favorite ? 'warning' : 'info');
 }
 
-// ══════════════════════════════════════════════
-//  9. CRUD OPERATIONS
-// ══════════════════════════════════════════════
+
 function addOrUpdateEvent(data) {
   const editId = document.getElementById('editingId').value;
 
@@ -1592,9 +1518,7 @@ function deleteEvent(id) {
   }
 }
 
-// ══════════════════════════════════════════════
-//  10. FORM VALIDATION
-// ══════════════════════════════════════════════
+
 const validationRules = {
   fTitle:    { min: 3,  errId: 'errTitle',    msg: 'Titlul este obligatoriu (min. 3 caractere)' },
   fCategory: { min: 1,  errId: 'errCategory', msg: 'Selectați o categorie' },
@@ -1641,9 +1565,7 @@ function clearForm() {
   });
 }
 
-// ══════════════════════════════════════════════
-//  11. COUNTDOWN & SESSION TIMER
-// ══════════════════════════════════════════════
+
 function updateCountdown() {
   // Find next upcoming confirmed or planned event
   const upcoming = events
@@ -1700,9 +1622,7 @@ function startSessionTimer() {
   }, 1000);
 }
 
-// ══════════════════════════════════════════════
-//  12. NOTIFICATIONS
-// ══════════════════════════════════════════════
+
 function showNotif(msg, type = 'info') {
   const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⭐' };
   const container = document.getElementById('notifications');
@@ -1717,9 +1637,7 @@ function showNotif(msg, type = 'info') {
   }, 3000);
 }
 
-// ══════════════════════════════════════════════
-//  13. EXPORT
-// ══════════════════════════════════════════════
+
 function exportTxt() {
   if (events.length === 0) { showNotif('Nu există date de exportat', 'error'); return; }
 
@@ -1747,9 +1665,7 @@ function exportTxt() {
   showNotif('📤 Export finalizat!', 'success');
 }
 
-// ══════════════════════════════════════════════
-//  14. THEME
-// ══════════════════════════════════════════════
+
 function toggleTheme() {
   const isDark = document.documentElement.dataset.theme === 'dark';
   document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
@@ -1762,9 +1678,7 @@ function updateThemeLabel() {
   document.getElementById('themeLabel').textContent = isDark ? '🌙' : '☀️';
 }
 
-// ══════════════════════════════════════════════
-//  15. HELPER LABELS
-// ══════════════════════════════════════════════
+
 function catLabel(v) {
   return { academic:'Academic', personal:'Personal', profesional:'Profesional', social:'Social', alt:'Alt' }[v] || v;
 }
@@ -1775,9 +1689,7 @@ function priLabel(v) {
   return { inalta:'Înaltă', medie:'Medie', scazuta:'Scăzută' }[v] || v;
 }
 
-// ══════════════════════════════════════════════
-//  16. SAMPLE DATA
-// ══════════════════════════════════════════════
+
 function loadSampleData() {
   const today = new Date();
   const fmt = (offset) => {
@@ -1802,9 +1714,7 @@ function loadSampleData() {
   showNotif('📚 Date de demonstrație încărcate!', 'info');
 }
 
-// ══════════════════════════════════════════════
-//  17. EVENT LISTENERS — DOMContentLoaded
-// ══════════════════════════════════════════════
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // Browser info (BOM)
